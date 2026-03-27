@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorteo Pádel</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#14532d" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+</head>
+
+<body>
+    <div class="app">
+        <h1>Sorteo de Parejas de Pádel</h1>
+
+        <div class="card">
+            <h2>Agregar jugador</h2>
+            <input type="text" id="nombre" placeholder="Nombre del jugador" />
+
+            <select id="lado">
+                <option value="drive">Drive</option>
+                <option value="reves">Revés</option>
+            </select>
+
+            <button id="btnAgregar">Agregar</button>
+        </div>
+
+        <div class="card">
+            <div class="fila-titulo">
+                <h2>Jugadores</h2>
+                <button id="btnLimpiar" class="btn-secundario">Limpiar todos</button>
+            </div>
+            <ul id="listaJugadores"></ul>
+        </div>
+
+        <div class="card">
+            <h2>Generar partidos</h2>
+
+            <label for="cantidadCanchas">Cantidad de canchas</label>
+            <select id="cantidadCanchas">
+                <option value="1">1 cancha</option>
+                <option value="2">2 canchas</option>
+                <option value="3">3 canchas</option>
+                <option value="4">4 canchas</option>
+            </select>
+
+            <button id="btnSortear">Generar partidos</button>
+            <div id="resultado"></div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+
+</html>
