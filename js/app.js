@@ -20,13 +20,132 @@ const modalMensaje = document.getElementById("modalMensaje");
 const modalAceptar = document.getElementById("modalAceptar");
 const modalCancelar = document.getElementById("modalCancelar");
 const toast = document.getElementById("toast");
+const nombreGrupoInput = document.getElementById("nombreGrupo");
+const btnGuardarGrupo = document.getElementById("btnGuardarGrupo");
+const listaGrupos = document.getElementById("listaGrupos");
 
 btnAgregar.addEventListener("click", agregarJugador);
 btnSortear.addEventListener("click", generarSorteo);
 btnLimpiar.addEventListener("click", limpiarJugadores);
+btnGuardarGrupo.addEventListener("click", guardarGrupoActual);
 
 cargarJugadores();
-cargarUltimoSorteo();
+renderGruposGuardados();
+
+function obtenerGruposGuardados() {
+    const grupos = localStorage.getItem("gruposPadel");
+    return grupos ? JSON.parse(grupos) : [];
+}
+
+function guardarGruposEnStorage(grupos) {
+    localStorage.setItem("gruposPadel", JSON.stringify(grupos));
+}
+
+function guardarGrupoActual() {
+    const nombreGrupo = nombreGrupoInput.value.trim().toUpperCase();
+
+    if (!nombreGrupo) {
+        mostrarAlerta("Atención", "Escribí un nombre para el grupo");
+        return;
+    }
+
+    if (jugadores.length === 0) {
+        mostrarAlerta("Atención", "No hay jugadores para guardar en el grupo");
+        return;
+    }
+
+    const grupos = obtenerGruposGuardados();
+
+    const grupoExistente = grupos.find((g) => g.nombre === nombreGrupo);
+
+    if (grupoExistente) {
+        mostrarAlerta("Atención", "Ya existe un grupo con ese nombre");
+        return;
+    }
+
+    grupos.push({
+        nombre: nombreGrupo,
+        jugadores: [...jugadores]
+    });
+
+    guardarGruposEnStorage(grupos);
+    nombreGrupoInput.value = "";
+    renderGruposGuardados();
+    mostrarToast("Grupo guardado 💾", "success");
+}
+
+function renderGruposGuardados() {
+    const grupos = obtenerGruposGuardados();
+
+    if (grupos.length === 0) {
+        listaGrupos.innerHTML = `<div class="lista-grupos-vacia">No hay grupos guardados</div>`;
+        return;
+    }
+
+    listaGrupos.innerHTML = "";
+
+    grupos.forEach((grupo, index) => {
+        const item = document.createElement("div");
+        item.className = "grupo-item";
+
+        const total = grupo.jugadores.length;
+        const drives = grupo.jugadores.filter((j) => j.lado === "drive").length;
+        const reveses = grupo.jugadores.filter((j) => j.lado === "reves").length;
+
+        item.innerHTML = `
+      <div class="grupo-item-header">
+        <div class="grupo-item-titulo">${grupo.nombre}</div>
+      </div>
+
+      <div class="grupo-item-subtexto">
+        ${total} jugadores · ${drives} drives · ${reveses} revés
+      </div>
+
+      <div class="grupo-item-acciones">
+        <button class="btn-grupo-cargar" onclick="cargarGrupo(${index})">📂 Cargar</button>
+        <button class="btn-grupo-borrar" onclick="borrarGrupo(${index})">🗑️ Borrar</button>
+      </div>
+    `;
+
+        listaGrupos.appendChild(item);
+    });
+}
+
+function cargarGrupo(index) {
+    const grupos = obtenerGruposGuardados();
+    const grupo = grupos[index];
+
+    if (!grupo) return;
+
+    jugadores.length = 0;
+    jugadores.push(...grupo.jugadores);
+
+    guardarJugadores();
+    renderJugadores();
+    resultado.innerHTML = "";
+
+    mostrarToast(`Grupo ${grupo.nombre} cargado`, "success");
+}
+
+async function borrarGrupo(index) {
+    const grupos = obtenerGruposGuardados();
+    const grupo = grupos[index];
+
+    if (!grupo) return;
+
+    const confirmar = await mostrarConfirm(
+        "Borrar grupo",
+        `¿Querés borrar el grupo ${grupo.nombre}?`
+    );
+
+    if (!confirmar) return;
+
+    grupos.splice(index, 1);
+    guardarGruposEnStorage(grupos);
+    renderGruposGuardados();
+
+    mostrarToast("Grupo borrado", "info");
+}
 
 function mostrarConfirm(titulo, mensaje) {
     return new Promise((resolve) => {
@@ -89,19 +208,39 @@ function mostrarToast(mensaje, tipo = "success") {
 }
 
 function agregarJugador() {
-    const nombre = nombreInput.value.trim();
+    const texto = nombreInput.value.trim();
     const lado = ladoSelect.value;
 
-    if (!nombre) {
-        mostrarAlerta("Atención", "Escribí un nombre");
+    if (!texto) {
+        mostrarAlerta("Atención", "Escribí al menos un nombre");
         return;
     }
 
-    jugadores.push({ nombre, lado });
+    // separar por coma
+    const nombres = texto.split(",");
+
+    let agregados = 0;
+
+    nombres.forEach((nombre) => {
+        const limpio = nombre.trim().toUpperCase();
+
+        if (limpio) {
+            jugadores.push({ nombre: limpio, lado });
+            agregados++;
+        }
+    });
+
     nombreInput.value = "";
+
     guardarJugadores();
     renderJugadores();
-    mostrarToast("Jugador agregado 🎾", "success");
+    resultado.innerHTML = "";
+
+    if (agregados === 1) {
+        mostrarToast("Jugador agregado 🎾", "success");
+    } else {
+        mostrarToast(`${agregados} jugadores agregados 🎾`, "success");
+    }
 }
 
 function actualizarDashboard() {
@@ -201,7 +340,6 @@ async function limpiarJugadores() {
 
     jugadores.length = 0;
     guardarJugadores();
-    limpiarUltimoSorteo();
     renderJugadores();
     resultado.innerHTML = "";
     mostrarToast("Lista borrada", "info");
@@ -224,26 +362,9 @@ function cargarJugadores() {
 function eliminarJugador(index) {
     jugadores.splice(index, 1);
     guardarJugadores();
-    limpiarUltimoSorteo();
     renderJugadores();
     resultado.innerHTML = "";
     mostrarToast("Jugador eliminado", "info");
-}
-
-function guardarUltimoSorteo(html) {
-    localStorage.setItem("ultimoSorteoPadel", html);
-}
-
-function cargarUltimoSorteo() {
-    const ultimoSorteo = localStorage.getItem("ultimoSorteoPadel");
-
-    if (ultimoSorteo) {
-        resultado.innerHTML = ultimoSorteo;
-    }
-}
-
-function limpiarUltimoSorteo() {
-    localStorage.removeItem("ultimoSorteoPadel");
 }
 
 function mezclarArray(array) {
@@ -372,7 +493,7 @@ function generarSorteo() {
     }
 
     resultado.innerHTML = html;
-    guardarUltimoSorteo(html);
+
     mostrarToast("Sorteo generado con éxito 🎉", "success");
 
 

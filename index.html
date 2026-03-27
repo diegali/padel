@@ -53,7 +53,7 @@
         <div class="app">
             <div class="card">
                 <h2>➕ Agregar jugador</h2>
-                <input type="text" id="nombre" placeholder="Nombre del jugador" />
+                <input type="text" id="nombre" placeholder="Ej: Juan, Pedro, Luis" />
 
                 <select id="lado">
                     <option value="drive">Drive</option>
@@ -61,6 +61,18 @@
                 </select>
 
                 <button id="btnAgregar">➕ Agregar jugador</button>
+            </div>
+
+            <div class="card">
+                <h2>💾 Grupos guardados</h2>
+
+                <input type="text" id="nombreGrupo" placeholder="Nombre del grupo. Ej: MARTES" />
+
+                <button id="btnGuardarGrupo">Guardar grupo actual</button>
+
+                <div id="listaGrupos" class="lista-grupos-vacia">
+                    No hay grupos guardados
+                </div>
             </div>
 
             <div class="card">
