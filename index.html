@@ -12,44 +12,99 @@
 </head>
 
 <body>
-    <div class="app">
-        <h1>Sorteo de Parejas de Pádel</h1>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="logo-mini">PR</div>
 
-        <div class="card">
-            <h2>Agregar jugador</h2>
-            <input type="text" id="nombre" placeholder="Nombre del jugador" />
-
-            <select id="lado">
-                <option value="drive">Drive</option>
-                <option value="reves">Revés</option>
-            </select>
-
-            <button id="btnAgregar">Agregar</button>
-        </div>
-
-        <div class="card">
-            <div class="fila-titulo">
-                <h2>Jugadores</h2>
-                <button id="btnLimpiar" class="btn-secundario">Limpiar todos</button>
+            <div class="header-texto">
+                <p class="app-kicker">🎾 Padel App</p>
+                <h1>Padel Random Pro</h1>
+                <p class="app-subtitle">Sorteá parejas y organizá partidos en segundos</p>
             </div>
-            <ul id="listaJugadores"></ul>
-        </div>
+        </header>
 
-        <div class="card">
-            <h2>Generar partidos</h2>
+        <section class="hero-card">
+            <div class="hero-info">
+                <p class="hero-label">Resumen rápido</p>
+                <h2 id="heroTitulo">Listo para sortear</h2>
+                <p id="heroResumen" class="hero-resumen">
+                    Cargá jugadores, elegí canchas y generá el sorteo.
+                </p>
+            </div>
 
-            <label for="cantidadCanchas">Cantidad de canchas</label>
-            <select id="cantidadCanchas">
-                <option value="1">1 cancha</option>
-                <option value="2">2 canchas</option>
-                <option value="3">3 canchas</option>
-                <option value="4">4 canchas</option>
-            </select>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <span class="stat-num" id="statJugadores">0</span>
+                    <span class="stat-label">Jugadores</span>
+                </div>
 
-            <button id="btnSortear">Generar partidos</button>
-            <div id="resultado"></div>
+                <div class="stat-box">
+                    <span class="stat-num" id="statDrives">0</span>
+                    <span class="stat-label">Drives</span>
+                </div>
+
+                <div class="stat-box">
+                    <span class="stat-num" id="statReveses">0</span>
+                    <span class="stat-label">Revés</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="app">
+            <div class="card">
+                <h2>➕ Agregar jugador</h2>
+                <input type="text" id="nombre" placeholder="Nombre del jugador" />
+
+                <select id="lado">
+                    <option value="drive">Drive</option>
+                    <option value="reves">Revés</option>
+                </select>
+
+                <button id="btnAgregar">➕ Agregar jugador</button>
+            </div>
+
+            <div class="card">
+                <div class="fila-titulo">
+                    <h2>👥 Jugadores</h2>
+                    <button id="btnLimpiar" class="btn-secundario">🗑️ Limpiar todos</button>
+                </div>
+
+                <p id="contadorJugadores" class="subtexto contador-jugadores">
+                    0 jugadores cargados
+                </p>
+
+                <ul id="listaJugadores"></ul>
+            </div>
+
+            <div class="card">
+                <h2>Generar partidos</h2>
+
+                <label for="cantidadCanchas" class="label">🎾 Cantidad de canchas</label>
+                <select id="cantidadCanchas">
+                    <option value="1">1 cancha</option>
+                    <option value="2">2 canchas</option>
+                    <option value="3">3 canchas</option>
+                    <option value="4">4 canchas</option>
+                </select>
+
+                <button id="btnSortear">🎲 Generar sorteo</button>
+                <div id="resultado"></div>
+            </div>
         </div>
     </div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalTitulo">Título</h3>
+            <p id="modalMensaje">Mensaje</p>
+
+            <div class="modal-acciones">
+                <button id="modalCancelar" class="btn-secundario">Cancelar</button>
+                <button id="modalAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
 
     <script src="./js/app.js"></script>
 </body>
