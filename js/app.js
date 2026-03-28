@@ -23,6 +23,13 @@ const toast = document.getElementById("toast");
 const nombreGrupoInput = document.getElementById("nombreGrupo");
 const btnGuardarGrupo = document.getElementById("btnGuardarGrupo");
 const listaGrupos = document.getElementById("listaGrupos");
+const modalEdicion = document.getElementById("modalEdicion");
+const modalEdicionLista = document.getElementById("modalEdicionLista");
+const modalEdicionNombre = document.getElementById("modalEdicionNombre");
+const modalEdicionLado = document.getElementById("modalEdicionLado");
+const modalEdicionAgregar = document.getElementById("modalEdicionAgregar");
+const modalEdicionCancelar = document.getElementById("modalEdicionCancelar");
+const modalEdicionGuardar = document.getElementById("modalEdicionGuardar");
 
 btnAgregar.addEventListener("click", agregarJugador);
 btnSortear.addEventListener("click", generarSorteo);
@@ -103,6 +110,7 @@ function renderGruposGuardados() {
 
       <div class="grupo-item-acciones">
         <button class="btn-grupo-cargar" onclick="cargarGrupo(${index})">📂 Cargar</button>
+        <button class="btn-grupo-editar" onclick="editarGrupo(${index})">✏️ Editar</button>
         <button class="btn-grupo-borrar" onclick="borrarGrupo(${index})">🗑️ Borrar</button>
       </div>
     `;
@@ -111,14 +119,22 @@ function renderGruposGuardados() {
     });
 }
 
-function cargarGrupo(index) {
+async function cargarGrupo(index) {
     const grupos = obtenerGruposGuardados();
     const grupo = grupos[index];
 
     if (!grupo) return;
 
+    if (jugadores.length > 0) {
+        const confirmar = await mostrarConfirm(
+            "Cargar grupo",
+            `Tenés ${jugadores.length} jugador${jugadores.length === 1 ? "" : "es"} cargado${jugadores.length === 1 ? "" : "s"}. ¿Reemplazarlos con el grupo ${grupo.nombre}?`
+        );
+        if (!confirmar) return;
+    }
+
     jugadores.length = 0;
-    jugadores.push(...grupo.jugadores);
+    jugadores.push(...grupo.jugadores.filter(j => j.incluido !== false));
 
     guardarJugadores();
     renderJugadores();
@@ -225,8 +241,13 @@ function agregarJugador() {
         const limpio = nombre.trim().toUpperCase();
 
         if (limpio) {
-            jugadores.push({ nombre: limpio, lado });
-            agregados++;
+            const existe = jugadores.some(j => j.nombre === limpio);
+            if (existe) {
+                mostrarToast(`${limpio} ya está en la lista`, "error");
+            } else {
+                jugadores.push({ nombre: limpio, lado, activo: true });
+                agregados++;
+            }
         }
     });
 
@@ -244,28 +265,14 @@ function agregarJugador() {
 }
 
 function actualizarDashboard() {
-    const total = jugadores.length;
-    const drives = jugadores.filter(j => j.lado === "drive").length;
-    const reveses = jugadores.filter(j => j.lado === "reves").length;
+    const activos = jugadores.filter(j => j.activo !== false);
+    const total = activos.length;
+    const drives = activos.filter(j => j.lado === "drive").length;
+    const reveses = activos.filter(j => j.lado === "reves").length;
 
     statJugadores.textContent = total;
     statDrives.textContent = drives;
     statReveses.textContent = reveses;
-
-    if (total === 0) {
-        heroTitulo.textContent = "Listo para sortear";
-        heroResumen.textContent = "Cargá jugadores, elegí canchas y generá el sorteo.";
-        return;
-    }
-
-    if (total < 4) {
-        heroTitulo.textContent = "Faltan jugadores";
-        heroResumen.textContent = "Todavía hay pocos jugadores para armar partidos completos.";
-        return;
-    }
-
-    heroTitulo.textContent = "Todo listo";
-    heroResumen.textContent = `Tenés ${total} jugadores cargados para generar el sorteo.`;
 
     if (total === 0) {
         heroTitulo.textContent = "Listo para sortear";
@@ -313,17 +320,19 @@ function renderJugadores() {
 
         li.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-        <div>
-          <strong style="font-size:16px;">${jugador.nombre}</strong>
-          <div style="margin-top:6px;">
-            <span class="tag ${claseTag}">${textoLado}</span>
-          </div>
+        <div style="display:flex; align-items:center; gap:10px; flex:1;">
+            <input type="checkbox" ${jugador.activo ? "checked" : ""} 
+            style="width:20px; height:20px; margin:0; flex-shrink:0; cursor:pointer; accent-color:#22c55e;"
+            onchange="toggleActivoJugador(${index})" />
+            <div style="${jugador.activo ? '' : 'opacity:0.4;'}">
+            <strong style="font-size:16px;">${jugador.nombre}</strong>
+            <div style="margin-top:6px;">
+                <span class="tag ${claseTag}" onclick="toggleLadoJugador(${index})" style="cursor:pointer;">${textoLado}</span>
+            </div>
+            </div>
         </div>
-
-        <button onclick="eliminarJugador(${index})" class="btn-eliminar">
-        🗑️
-        </button>
-      </div>
+        <button onclick="eliminarJugador(${index})" class="btn-eliminar">🗑️</button>
+        </div>
     `;
 
         listaJugadores.appendChild(li);
@@ -354,7 +363,7 @@ function cargarJugadores() {
 
     if (guardados) {
         const datos = JSON.parse(guardados);
-        jugadores.push(...datos);
+        jugadores.push(...datos.map(j => ({ activo: true, ...j })));
         renderJugadores();
     }
 }
@@ -365,6 +374,20 @@ function eliminarJugador(index) {
     renderJugadores();
     resultado.innerHTML = "";
     mostrarToast("Jugador eliminado", "info");
+}
+
+function toggleActivoJugador(index) {
+    jugadores[index].activo = !jugadores[index].activo;
+    guardarJugadores();
+    renderJugadores();
+    resultado.innerHTML = "";
+}
+
+function toggleLadoJugador(index) {
+    jugadores[index].lado = jugadores[index].lado === "drive" ? "reves" : "drive";
+    guardarJugadores();
+    renderJugadores();
+    resultado.innerHTML = "";
 }
 
 function mezclarArray(array) {
@@ -504,8 +527,8 @@ function generarSorteo() {
 }
 
 function generarParejas() {
-    const drives = jugadores.filter(j => j.lado === "drive");
-    const reveses = jugadores.filter(j => j.lado === "reves");
+    const drives = jugadores.filter(j => j.lado === "drive" && j.activo !== false);
+    const reveses = jugadores.filter(j => j.lado === "reves" && j.activo !== false);
 
     const drivesMezclados = mezclarArray(drives);
     const revesesMezclados = mezclarArray(reveses);
@@ -549,6 +572,85 @@ function generarPartidos(parejas) {
 
     return { partidos, espera };
 }
+
+let grupoEditandoIndex = null;
+let jugadoresEditando = [];
+
+function editarGrupo(index) {
+    const grupos = obtenerGruposGuardados();
+    const grupo = grupos[index];
+    if (!grupo) return;
+
+    grupoEditandoIndex = index;
+    jugadoresEditando = grupo.jugadores.map(j => ({ ...j, incluido: true }));
+
+    document.getElementById("modalEdicionTitulo").textContent = `Editar: ${grupo.nombre}`;
+    renderModalEdicion();
+    modalEdicion.classList.add("activo");
+}
+
+function renderModalEdicion() {
+    modalEdicionLista.innerHTML = "";
+
+    jugadoresEditando.forEach((j, i) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.07);";
+
+        const claseTag = j.lado === "drive" ? "tag-drive" : "tag-reves";
+        const textoLado = j.lado === "drive" ? "Drive" : "Revés";
+
+        div.innerHTML = `
+            <input type="checkbox" id="chk_${i}" ${j.incluido ? "checked" : ""} style="width:18px; height:18px; margin:0; flex-shrink:0;" onchange="toggleIncluidoEdicion(${i})"/>
+            <label for="chk_${i}" style="flex:1; font-weight:600; cursor:pointer;">${j.nombre}</label>
+            <select onchange="cambiarLadoEdicion(${i}, this.value)" style="width:auto; margin:0; padding:6px 8px; font-size:13px;">
+                <option value="drive" ${j.lado === "drive" ? "selected" : ""}>Drive</option>
+                <option value="reves" ${j.lado === "reves" ? "selected" : ""}>Revés</option>
+            </select>
+            <button onclick="eliminarDeEdicion(${i})" style="width:auto; margin:0; padding:6px 10px; font-size:13px; background:linear-gradient(135deg,#ef4444,#b91c1c);">🗑️</button>
+        `;
+
+        modalEdicionLista.appendChild(div);
+    });
+
+    if (jugadoresEditando.length === 0) {
+        modalEdicionLista.innerHTML = `<div class="subtexto" style="padding:10px 0;">No hay jugadores en este grupo</div>`;
+    }
+}
+
+function toggleIncluidoEdicion(i) {
+    jugadoresEditando[i].incluido = !jugadoresEditando[i].incluido;
+}
+
+function cambiarLadoEdicion(i, nuevoLado) {
+    jugadoresEditando[i].lado = nuevoLado;
+}
+
+function eliminarDeEdicion(i) {
+    jugadoresEditando.splice(i, 1);
+    renderModalEdicion();
+}
+
+modalEdicionAgregar.addEventListener("click", () => {
+    const nombre = modalEdicionNombre.value.trim().toUpperCase();
+    if (!nombre) return;
+    jugadoresEditando.push({ nombre, lado: modalEdicionLado.value, incluido: true });
+    modalEdicionNombre.value = "";
+    renderModalEdicion();
+});
+
+modalEdicionCancelar.addEventListener("click", () => {
+    modalEdicion.classList.remove("activo");
+});
+
+modalEdicionGuardar.addEventListener("click", () => {
+    const grupos = obtenerGruposGuardados();
+    // Guardamos todos los jugadores (con y sin incluido) en el grupo
+    grupos[grupoEditandoIndex].jugadores = jugadoresEditando.map(({ nombre, lado }) => ({ nombre, lado }));
+    guardarGruposEnStorage(grupos);
+    modalEdicion.classList.remove("activo");
+    renderGruposGuardados();
+    mostrarToast("Grupo actualizado 💾", "success");
+});
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {

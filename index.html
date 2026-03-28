@@ -117,6 +117,27 @@
         </div>
     </div>
     <div id="toast" class="toast"></div>
+    <div id="modalEdicion" class="modal-overlay">
+        <div class="modal-box" style="max-width: 420px; width: 95%; max-height: 80vh; overflow-y: auto;">
+            <h3 id="modalEdicionTitulo">Editar grupo</h3>
+
+            <div id="modalEdicionLista" style="margin: 12px 0; text-align: left;"></div>
+
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <input type="text" id="modalEdicionNombre" placeholder="Nuevo jugador" style="margin-top:0; flex:1;" />
+                <select id="modalEdicionLado" style="margin-top:0; width:auto;">
+                    <option value="drive">Drive</option>
+                    <option value="reves">Revés</option>
+                </select>
+            </div>
+            <button id="modalEdicionAgregar" style="margin-top:10px;">➕ Agregar jugador</button>
+
+            <div class="modal-acciones" style="margin-top:16px;">
+                <button id="modalEdicionCancelar" class="btn-secundario">Cancelar</button>
+                <button id="modalEdicionGuardar">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="./js/app.js"></script>
 </body>

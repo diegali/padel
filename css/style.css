@@ -681,3 +681,15 @@ button {
 .btn-grupo-borrar {
     background: linear-gradient(135deg, #ef4444, #b91c1c);
 }
+
+.btn-grupo-editar {
+    flex: 1;
+    height: 42px;
+    margin-top: 0;
+    padding: 0 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
